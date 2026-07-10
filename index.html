@@ -20,7 +20,7 @@
       min-height: 100vh;
       display: flex;
       overflow-x: hidden;
-      padding-top: 80px;
+      padding-top: 72px;
     }
 
     /* SIDEBAR - Android optimized */
@@ -184,14 +184,14 @@
       left: 0;
       right: 0;
       z-index: 999;
-      background: linear-gradient(135deg, #fc1c33 0%, #2f73e1 50%, #2d3748 100%);
-      padding: 14px 24px;
+      background: linear-gradient(135deg, #fc1dee 0%, #fce21c 50%, #0763ff 100%);
+      padding: 12px 20px;
       color: white;
       box-shadow: 0 2px 20px rgba(15, 23, 42, 0.25);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
       min-height: 72px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
@@ -229,36 +229,45 @@
     }
 
     .header-icon {
-      font-size: 1.8rem;
+      font-size: 2rem;
       line-height: 1;
     }
 
     .header-title-group {
       display: flex;
       flex-direction: column;
-      gap: 0px;
+      gap: 2px;
     }
 
+    /* ===== HEADER TITLE & SUBTITLE - DIPERBAIKI ===== */
     .header-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      color: white;
-      line-height: 1.3;
+      font-size: 1.6rem !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.5px !important;
+      color: white !important;
+      line-height: 1.2 !important;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+      display: block !important;
     }
 
     .header-subtitle {
-      font-size: 0.7rem;
-      color: #94a3b8;
-      font-weight: 400;
+      font-size: 0.8rem !important;
+      color: #ae0c0c !important;
+      font-weight: 400 !important;
+      letter-spacing: 0.3px !important;
+      opacity: 1 !important;
+      display: block !important;
+      visibility: visible !important;
+      margin-top: 2px !important;
     }
 
     .header-right {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       position: relative;
       z-index: 1;
+      flex-shrink: 0;
     }
 
     /* Hamburger di dalam header */
@@ -266,17 +275,17 @@
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: white;
-      font-size: 1.6rem;
-      padding: 6px 12px;
-      border-radius: 12px;
+      font-size: 1.4rem;
+      padding: 6px 10px;
+      border-radius: 10px;
       cursor: pointer;
       transition: 0.2s;
       touch-action: manipulation;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 44px;
-      min-height: 44px;
+      min-width: 40px;
+      min-height: 40px;
       backdrop-filter: blur(4px);
     }
 
@@ -294,19 +303,19 @@
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: white;
-      font-size: 1.2rem;
-      padding: 6px 12px;
-      border-radius: 12px;
+      font-size: 1.1rem;
+      padding: 6px 10px;
+      border-radius: 10px;
       cursor: pointer;
       transition: 0.2s;
       touch-action: manipulation;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 44px;
-      min-height: 44px;
+      min-width: 40px;
+      min-height: 40px;
       backdrop-filter: blur(4px);
-      gap: 6px;
+      gap: 4px;
       font-weight: 500;
     }
 
@@ -320,7 +329,54 @@
     }
 
     .login-btn .login-icon {
-      font-size: 1.3rem;
+      font-size: 1.1rem;
+    }
+
+    /* ===== STATUS CONNECTION IN HEADER ===== */
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.65rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(4px);
+      white-space: nowrap;
+    }
+
+    .header-status .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .header-status .status-dot.online {
+      background: #34d399;
+      box-shadow: 0 0 8px rgba(52, 211, 153, 0.3);
+    }
+
+    .header-status .status-dot.offline {
+      background: #ef4444;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .header-status .status-dot.checking {
+      background: #fbbf24;
+      box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .header-status .status-text {
+      color: #94a3b8;
     }
 
     /* ===== MENU POPUP (Android-style Bottom Sheet) ===== */
@@ -481,7 +537,7 @@
       background: #e2e8f0;
     }
 
-    /* ===== ANDROID STYLE POPUP ===== */
+    /* ===== ANDROID STYLE POPUPS ===== */
     .android-popup-overlay {
       display: none;
       position: fixed;
@@ -592,85 +648,7 @@
       background: #16a34a;
     }
 
-    /* TOPBAR - di bawah header */
-    .topbar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      padding: 4px 0;
-      justify-content: flex-end;
-      margin-top: 4px;
-    }
-
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-right: auto;
-    }
-
-    .topbar-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #0f172a;
-    }
-
-    .topbar-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .btn-action {
-      background: white;
-      border: 1.5px solid #e2e8f0;
-      padding: 8px 16px;
-      border-radius: 40px;
-      font-weight: 500;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: 0.15s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: #1e293b;
-      touch-action: manipulation;
-      min-height: 44px;
-    }
-
-    .btn-action:active {
-      transform: scale(0.96);
-    }
-
-    .btn-action:hover {
-      background: #f8fafc;
-      border-color: #94a3b8;
-    }
-
-    .btn-action.primary {
-      background: #3b82f6;
-      border-color: #3b82f6;
-      color: white;
-    }
-
-    .btn-action.primary:hover {
-      background: #2563eb;
-      border-color: #2563eb;
-    }
-
-    .status-badge {
-      font-size: 0.7rem;
-      background: #eef2ff;
-      color: #4338ca;
-      padding: 4px 14px;
-      border-radius: 30px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    /* CARD FORM - Android optimized */
+    /* CARD FORM - langsung di bawah header */
     .card {
       background: white;
       border-radius: 24px;
@@ -679,17 +657,18 @@
       max-width: 780px;
       margin-bottom: 24px;
       width: 100%;
+      margin-top: 0;
     }
 
     .card h3 {
       font-weight: 600;
       font-size: 1.2rem;
-      color: #0f172a;
+      color: #1f5ae8;
       margin-bottom: 0.2rem;
     }
 
     .subhead {
-      color: #64748b;
+      color: #fc2b2b;
       font-size: 0.85rem;
       margin-bottom: 1.2rem;
       border-left: 4px solid #3b82f6;
@@ -720,19 +699,20 @@
       font-size: 0.75rem;
       letter-spacing: 0.3px;
       text-transform: uppercase;
-      color: #475569;
+      color: #9d53fa;
       display: flex;
       align-items: center;
       gap: 4px;
+      cursor: pointer;
     }
 
     .field-group label i {
       font-style: normal;
       background: #e2e8f0;
-      border-radius: 20px;
+      border-radius: 22px;
       padding: 0 8px;
       font-size: 0.6rem;
-      color: #334155;
+      color: #ea0404;
     }
 
     .field-group input {
@@ -749,7 +729,7 @@
     }
 
     .field-group input:focus {
-      border-color: #3b82f6;
+      border-color: #ef49ff;
       box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
     }
 
@@ -771,9 +751,74 @@
 
     .field-group .qty-hint {
       font-size: 0.65rem;
-      color: #94a3b8;
+      color: #06060a;
       margin-top: 2px;
       padding-left: 4px;
+    }
+
+    /* Combined qty input - horizontal grid */
+    .field-group.combined-qty {
+      grid-column: 1 / -1;
+    }
+
+    .field-group.combined-qty .qty-display-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field-group.combined-qty .qty-display-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-group.combined-qty .qty-display-item .item-icon-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #e462e2;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .field-group.combined-qty .qty-display-item .item-icon-label .icon {
+      font-size: 1rem;
+    }
+
+    .field-group.combined-qty .qty-display-item input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      background: white;
+      transition: 0.2s;
+      outline: none;
+      -webkit-appearance: none;
+      min-height: 48px;
+    }
+
+    .field-group.combined-qty .qty-display-item input:focus {
+      border-color: #70e126;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+    }
+
+    .field-group.combined-qty .qty-display-item input::placeholder {
+      color: #94a3b8;
+      font-weight: 300;
+      font-size: 0.85rem;
+    }
+
+    .field-group.combined-qty .qty-display-item input[type="number"]::-webkit-inner-spin-button,
+    .field-group.combined-qty .qty-display-item input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .field-group.combined-qty .qty-display-item input[type="number"] {
+      -moz-appearance: textfield;
     }
 
     .btn-row {
@@ -864,7 +909,7 @@
     /* ===== RESPONSIVE ANDROID ===== */
     @media (max-width: 720px) {
       body {
-        padding-top: 68px;
+        padding-top: 64px;
       }
 
       .sidebar.open {
@@ -881,64 +926,51 @@
         gap: 12px;
       }
 
+      .field-group.combined-qty .qty-display-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+
       .page-header {
-        padding: 10px 16px;
-        min-height: 64px;
+        padding: 8px 14px;
+        min-height: 60px;
       }
 
       .header-title {
-        font-size: 1rem;
+        font-size: 1.3rem !important;
       }
 
       .header-subtitle {
-        font-size: 0.65rem;
+        font-size: 0.7rem !important;
+        display: block !important;
+        visibility: visible !important;
       }
 
       .header-icon {
-        font-size: 1.4rem;
+        font-size: 1.6rem;
       }
 
       .hamburger-header {
-        font-size: 1.4rem;
-        padding: 4px 10px;
-        min-width: 40px;
-        min-height: 40px;
+        font-size: 1.2rem;
+        padding: 4px 8px;
+        min-width: 36px;
+        min-height: 36px;
       }
 
       .login-btn {
         font-size: 1rem;
-        padding: 4px 10px;
-        min-width: 40px;
-        min-height: 40px;
+        padding: 4px 8px;
+        min-width: 36px;
+        min-height: 36px;
       }
 
       .login-btn .login-icon {
-        font-size: 1.1rem;
+        font-size: 1rem;
       }
 
-      .topbar {
-        justify-content: flex-end;
-        gap: 6px;
-        margin-top: 2px;
-      }
-
-      .topbar-actions {
-        margin-left: 0;
-        width: 100%;
-        justify-content: flex-start;
-      }
-
-      .topbar-left {
-        margin-right: auto;
-      }
-
-      .topbar-title {
-        font-size: 0.95rem;
-      }
-
-      .status-badge {
-        width: 100%;
-        text-align: center;
+      .header-status {
+        font-size: 0.6rem;
+        padding: 3px 8px;
       }
 
       .btn-row {
@@ -957,12 +989,6 @@
       .card {
         padding: 1.25rem 1rem 1.5rem;
         border-radius: 20px;
-      }
-
-      .btn-action {
-        padding: 6px 14px;
-        font-size: 0.8rem;
-        min-height: 40px;
       }
 
       .menu-popup {
@@ -985,7 +1011,7 @@
     /* Android minimal screen */
     @media (max-width: 400px) {
       body {
-        padding-top: 60px;
+        padding-top: 56px;
       }
 
       .main-content {
@@ -993,38 +1019,49 @@
       }
 
       .page-header {
-        padding: 8px 12px;
-        min-height: 56px;
+        padding: 6px 10px;
+        min-height: 52px;
       }
 
       .header-title {
-        font-size: 0.85rem;
+        font-size: 1.1rem !important;
       }
 
       .header-subtitle {
-        font-size: 0.6rem;
+        font-size: 0.6rem !important;
+        display: block !important;
+        visibility: visible !important;
       }
 
       .header-icon {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
       }
 
       .hamburger-header {
-        font-size: 1.2rem;
-        padding: 4px 8px;
-        min-width: 36px;
-        min-height: 36px;
+        font-size: 1.1rem;
+        padding: 4px 6px;
+        min-width: 32px;
+        min-height: 32px;
       }
 
       .login-btn {
-        font-size: 0.9rem;
-        padding: 4px 8px;
-        min-width: 36px;
-        min-height: 36px;
+        font-size: 0.85rem;
+        padding: 4px 6px;
+        min-width: 32px;
+        min-height: 32px;
       }
 
       .login-btn .login-icon {
-        font-size: 1rem;
+        font-size: 0.85rem;
+      }
+
+      .header-status {
+        font-size: 0.55rem;
+        padding: 2px 6px;
+      }
+
+      .header-status .status-text {
+        display: none;
       }
 
       .card {
@@ -1037,24 +1074,25 @@
         min-height: 44px;
       }
 
+      .field-group.combined-qty .qty-display-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+      }
+
+      .field-group.combined-qty .qty-display-item input {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+        min-height: 40px;
+      }
+
+      .field-group.combined-qty .qty-display-item .item-icon-label {
+        font-size: 0.65rem;
+      }
+
       .btn {
         font-size: 0.85rem;
         padding: 10px 18px;
         min-height: 44px;
-      }
-
-      .topbar-actions {
-        gap: 6px;
-      }
-
-      .btn-action {
-        font-size: 0.75rem;
-        padding: 4px 12px;
-        min-height: 36px;
-      }
-
-      .topbar-title {
-        font-size: 0.85rem;
       }
 
       .menu-popup {
@@ -1182,13 +1220,17 @@
   <!-- PAGE HEADER FIXED -->
   <header class="page-header" id="pageHeader">
     <div class="header-left">
-      <span class="header-icon">📦</span>
+      <span class="header-icon"></span>
       <div class="header-title-group">
         <div class="header-title">Manajemen Material</div>
         <div class="header-subtitle">Kelola stok sisa material</div>
       </div>
     </div>
     <div class="header-right">
+      <div class="header-status">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Mengecek...</span>
+      </div>
       <button class="login-btn" id="loginBtn">
         <span class="login-icon">👤</span>
       </button>
@@ -1315,47 +1357,50 @@
     </div>
   </div>
 
-  <!-- Topbar -->
-  <div class="topbar">
-    <div class="topbar-left">
-      <span class="topbar-title">📋 Input Data</span>
-    </div>
-    <div class="topbar-actions">
-      <button class="btn-action" id="refreshBtn">⟳ Refresh</button>
-    </div>
-    <span class="status-badge" id="connStatus">⏳ cek</span>
-  </div>
-
-  <!-- Form Card -->
+  <!-- Form Card - Langsung di bawah header -->
   <div class="card">
     <h3 id="formTitle">Input Sisa Material</h3>
-    <div class="subhead" id="formSubhead">Tambah data baru</div>
+    <div class="subhead" id="formSubhead">⚡ Tambah data baru</div>
 
     <form id="materialForm" autocomplete="off">
       <div class="form-grid">
         <div class="field-group">
           <label>Brand <i>wajib</i></label>
-          <input type="text" id="brand" placeholder="contoh: Nike" required />
+          <input type="text" id="brand" placeholder="contoh: Booklet, display dll" required />
         </div>
         <div class="field-group">
           <label>Size <i>wajib</i></label>
-          <input type="text" id="size" placeholder="1 ¼, 1 ¼ + tips, kss, kss + tips" required />
+          <input type="text" id="size" placeholder="1 ¼, Kss" required />
         </div>
-        <div class="field-group">
-          <label>Booklet <i>qty pcs</i></label>
-          <input type="number" id="booklet" placeholder="0" min="0" step="1" inputmode="numeric" />
-          <span class="qty-hint">Jumlah dalam pcs</span>
+        
+        <!-- Combined Qty: Booklet, Filtertips, Trapezoid - Horizontal Grid -->
+        <div class="field-group combined-qty">
+          <label>Qty Items <i>pcs</i></label>
+          <div class="qty-display-grid">
+            <div class="qty-display-item">
+              <div class="item-icon-label">
+                <span class="icon"></span>
+                <span>Booklet</span>
+              </div>
+              <input type="number" id="booklet" placeholder="0" min="0" step="1" inputmode="numeric" />
+            </div>
+            <div class="qty-display-item">
+              <div class="item-icon-label">
+                <span class="icon"></span>
+                <span>Filtertips</span>
+              </div>
+              <input type="number" id="filtertips" placeholder="0" min="0" step="1" inputmode="numeric" />
+            </div>
+            <div class="qty-display-item">
+              <div class="item-icon-label">
+                <span class="icon"></span>
+                <span>Trapezoid</span>
+              </div>
+              <input type="number" id="trapezoid" placeholder="0" min="0" step="1" inputmode="numeric" />
+            </div>
+          </div>
         </div>
-        <div class="field-group">
-          <label>Filtertips <i>qty pcs</i></label>
-          <input type="number" id="filtertips" placeholder="0" min="0" step="1" inputmode="numeric" />
-          <span class="qty-hint">Jumlah dalam pcs</span>
-        </div>
-        <div class="field-group">
-          <label>Trapezoid <i>qty pcs</i></label>
-          <input type="number" id="trapezoid" placeholder="0" min="0" step="1" inputmode="numeric" />
-          <span class="qty-hint">Jumlah dalam pcs</span>
-        </div>
+        
         <div class="field-group">
           <label>Cover <i>qty pcs</i></label>
           <input type="number" id="cover" placeholder="0" min="0" step="1" inputmode="numeric" />
@@ -1402,7 +1447,10 @@
     const closeSidebarBtn = document.getElementById('closeSidebar');
     const sidebarList = document.getElementById('sidebarList');
     const searchInput = document.getElementById('searchSidebar');
-    const connStatus = document.getElementById('connStatus');
+
+    // Header status
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
 
     // Menu elements
     const loginBtn = document.getElementById('loginBtn');
@@ -1455,8 +1503,6 @@
     const toastText = document.getElementById('toastText');
     const toastIcon = document.getElementById('toastIcon');
 
-    const refreshBtn = document.getElementById('refreshBtn');
-
     // ===== STATE =====
     let allData = [];
     let editingId = null;
@@ -1472,6 +1518,23 @@
       toast.classList.add('show');
       clearTimeout(window.toastTimer);
       window.toastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+    }
+
+    // ===== UPDATE HEADER STATUS =====
+    function updateHeaderStatus(isConnected, isChecking = false) {
+      if (isChecking) {
+        statusDot.className = 'status-dot checking';
+        statusText.textContent = 'Mengecek...';
+        return;
+      }
+      
+      if (isConnected) {
+        statusDot.className = 'status-dot online';
+        statusText.textContent = 'Terhubung';
+      } else {
+        statusDot.className = 'status-dot offline';
+        statusText.textContent = 'Offline';
+      }
     }
 
     // ===== ANDROID POPUP FUNCTIONS =====
@@ -1532,7 +1595,7 @@
       showInfoPopup('🔧', 'Pengaturan', 'Menu Pengaturan akan segera hadir');
     });
 
-    // Menu Download XLSX - tampilkan popup
+    // Menu Download XLSX
     menuDownloadXlsx.addEventListener('click', () => {
       closeMenu();
       if (allData.length === 0) {
@@ -1542,7 +1605,6 @@
       showPopup(popupDownloadXlsx);
     });
 
-    // Confirm Download XLSX
     confirmDownloadXlsx.addEventListener('click', () => {
       hidePopup(popupDownloadXlsx);
       downloadXlsx();
@@ -1562,7 +1624,6 @@
       showPopup(popupBackupJson);
     });
 
-    // Confirm Backup JSON
     confirmBackupJson.addEventListener('click', () => {
       hidePopup(popupBackupJson);
       backupData('json');
@@ -1582,7 +1643,6 @@
       showPopup(popupBackupSql);
     });
 
-    // Confirm Backup SQL
     confirmBackupSql.addEventListener('click', () => {
       hidePopup(popupBackupSql);
       backupData('sql');
@@ -1592,7 +1652,6 @@
       hidePopup(popupBackupSql);
     });
 
-    // Info popup OK
     infoPopupOk.addEventListener('click', () => {
       hidePopup(popupInfo);
     });
@@ -1819,7 +1878,6 @@
       const item = allData.find(d => d.id === id);
       showInfoPopup('🗑️', 'Hapus Data', `Yakin ingin menghapus data "${item.brand} · ${item.size}"?`);
       
-      // Override tombol OK untuk konfirmasi hapus
       infoPopupOk.removeEventListener('click', handleInfoOk);
       infoPopupOk.textContent = 'Hapus';
       infoPopupOk.className = 'btn-popup danger';
@@ -1832,7 +1890,6 @@
         deleteTargetId = null;
       }
       hidePopup(popupInfo);
-      // Reset tombol info
       infoPopupOk.textContent = 'OK';
       infoPopupOk.className = 'btn-popup primary';
       infoPopupOk.removeEventListener('click', handleConfirmDelete);
@@ -1843,7 +1900,6 @@
       hidePopup(popupInfo);
     }
 
-    // Reset info button default
     infoPopupOk.addEventListener('click', handleInfoOk);
 
     // ===== FETCH DATA =====
@@ -1883,9 +1939,11 @@
       editingId = item.id;
       brandInput.value = item.brand || '';
       sizeInput.value = item.size || '';
+      
       bookletInput.value = item.booklet ?? '';
       filtertipsInput.value = item.filtertips ?? '';
       trapezoidInput.value = item.trapezoid ?? '';
+      
       coverInput.value = item.cover ?? '';
       displayboxInput.value = item.displaybox ?? '';
       notesInput.value = item.notes || '';
@@ -1900,7 +1958,8 @@
     function cancelEdit() {
       editingId = null;
       form.reset();
-      formTitle.textContent = '📦 Input Sisa Material';
+      
+      formTitle.textContent = 'Input Sisa Material';
       formSubhead.textContent = '⚡ Tambah data baru · tersimpan di Supabase';
       submitBtn.textContent = '💾 Simpan';
       cancelEditBtn.style.display = 'none';
@@ -1972,18 +2031,16 @@
     // ===== CHECK CONNECTION =====
     async function checkConnection() {
       try {
-        connStatus.textContent = '⏳ cek...';
+        updateHeaderStatus(false, true);
         
         const { error } = await supabase.from('material_sisa').select('id', { count: 'exact', head: true }).limit(1);
         
         if (error && error.code !== '42P01') throw error;
         
-        connStatus.textContent = '🟢 terhubung';
-        connStatus.style.color = '#15803d';
+        updateHeaderStatus(true, false);
         return true;
       } catch (err) {
-        connStatus.textContent = '🔴 gagal konek';
-        connStatus.style.color = '#b91c1c';
+        updateHeaderStatus(false, false);
         showInfoPopup('❌', 'Gagal Koneksi', err.message);
         return false;
       }
@@ -1997,10 +2054,6 @@
       form.addEventListener('submit', handleSubmit);
       resetBtn.addEventListener('click', () => cancelEdit());
       cancelEditBtn.addEventListener('click', () => cancelEdit());
-      refreshBtn.addEventListener('click', async () => {
-        await fetchData();
-        showInfoPopup('✅', 'Refresh', 'Data berhasil diperbarui');
-      });
 
       searchInput.addEventListener('input', (e) => {
         searchQuery = e.target.value;
@@ -2014,7 +2067,6 @@
         if (menuOverlay.classList.contains('active')) {
           closeMenu();
         }
-        // Tutup semua popup
         document.querySelectorAll('.android-popup-overlay.active').forEach(p => {
           hidePopup(p);
         });
@@ -2034,7 +2086,7 @@
 
     init();
 
-    console.log('📦 Aplikasi siap.');
+    console.log(' Aplikasi siap.');
   })();
 </script>
 </body>
