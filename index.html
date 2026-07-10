@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Manajemen Sisa Material</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+      background: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+      padding-top: 80px;
+    }
+
+    /* SIDEBAR - Android optimized */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      overflow-x: hidden;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      will-change: width;
+    }
+
+    .sidebar.open {
+      width: 340px;
+    }
+
+    .sidebar-header {
+      padding: 20px 18px 12px;
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .close-sidebar {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.8rem;
+      cursor: pointer;
+      padding: 8px 12px;
+      line-height: 1;
+      transition: 0.2s;
+      touch-action: manipulation;
+    }
+
+    .close-sidebar:hover {
+      color: #f1f5f9;
+      transform: rotate(90deg);
+    }
+
+    .sidebar-search {
+      padding: 14px 18px;
+      background: #1e293b;
+      flex-shrink: 0;
+    }
+
+    .sidebar-search input {
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 30px;
+      background: #334155;
+      color: #f1f5f9;
+      font-size: 0.95rem;
+      outline: none;
+      transition: 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .sidebar-search input::placeholder {
+      color: #94a3b8;
+    }
+
+    .sidebar-search input:focus {
+      background: #475569;
+      box-shadow: 0 0 0 3px #3b82f6;
+    }
+
+    .sidebar-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px 20px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .sidebar-list .item-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: 0.15s;
+      border-left: 4px solid #3b82f6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      touch-action: manipulation;
+    }
+
+    .sidebar-list .item-card:active {
+      transform: scale(0.98);
+      background: #334155;
+    }
+
+    .sidebar-list .item-card .item-name {
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: #f1f5f9;
+    }
+
+    .sidebar-list .item-card .item-size {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      background: #0f172a;
+      padding: 2px 10px;
+      border-radius: 30px;
+    }
+
+    .sidebar-list .item-card .item-qty-badge {
+      display: inline-block;
+      background: #1e293b;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.65rem;
+      color: #94a3b8;
+      margin-right: 4px;
+    }
+
+    .sidebar-list .empty-msg {
+      color: #64748b;
+      text-align: center;
+      padding: 30px 10px;
+      font-size: 0.9rem;
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      margin-right: 0;
+      transition: margin-right 0.3s ease;
+      width: 100%;
+      padding: 16px;
+      min-height: 100vh;
+      max-width: 100vw;
+    }
+
+    .main-content.shifted {
+      margin-right: 340px;
+    }
+
+    /* ===== HEADER FIXED ===== */
+    .page-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background: linear-gradient(135deg, #fc1c33 0%, #2f73e1 50%, #2d3748 100%);
+      padding: 14px 24px;
+      color: white;
+      box-shadow: 0 2px 20px rgba(15, 23, 42, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 72px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .page-header::after {
+      content: '';
+      position: absolute;
+      bottom: -40%;
+      left: -10%;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.06) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+
+    .header-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0px;
+    }
+
+    .header-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: white;
+      line-height: 1.3;
+    }
+
+    .header-subtitle {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Hamburger di dalam header */
+    .hamburger-header {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 1.6rem;
+      padding: 6px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      touch-action: manipulation;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      backdrop-filter: blur(4px);
+    }
+
+    .hamburger-header:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .hamburger-header:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* ===== LOGIN BUTTON ===== */
+    .login-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 1.2rem;
+      padding: 6px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      touch-action: manipulation;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      backdrop-filter: blur(4px);
+      gap: 6px;
+      font-weight: 500;
+    }
+
+    .login-btn:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .login-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .login-btn .login-icon {
+      font-size: 1.3rem;
+    }
+
+    /* ===== MENU POPUP (Android-style Bottom Sheet) ===== */
+    .menu-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .menu-overlay.active {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .menu-popup {
+      background: #ffffff;
+      border-radius: 28px 28px 0 0;
+      width: 100%;
+      max-width: 480px;
+      max-height: 75vh;
+      padding: 20px 24px 28px;
+      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
+      overflow-y: auto;
+    }
+
+    .menu-popup .menu-handle {
+      width: 40px;
+      height: 4px;
+      background: #d1d5db;
+      border-radius: 4px;
+      margin: 0 auto 16px;
+      flex-shrink: 0;
+    }
+
+    .menu-popup .menu-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .menu-popup .menu-title .title-icon {
+      font-size: 1.3rem;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: 0.15s;
+      touch-action: manipulation;
+      margin-bottom: 8px;
+      border: 1px solid transparent;
+    }
+
+    .menu-item:active {
+      transform: scale(0.97);
+      background: #f1f5f9;
+    }
+
+    .menu-item:hover {
+      background: #f1f5f9;
+      border-color: #e2e8f0;
+    }
+
+    .menu-item .menu-item-icon {
+      font-size: 1.5rem;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .menu-item .menu-item-content {
+      flex: 1;
+    }
+
+    .menu-item .menu-item-content .menu-item-title {
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 0.95rem;
+    }
+
+    .menu-item .menu-item-content .menu-item-desc {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .menu-item .menu-item-arrow {
+      color: #94a3b8;
+      font-size: 1.2rem;
+    }
+
+    .menu-divider {
+      height: 1px;
+      background: #e2e8f0;
+      margin: 12px 0;
+    }
+
+    .menu-sub {
+      padding-left: 20px;
+      margin-left: 20px;
+      border-left: 2px solid #e2e8f0;
+    }
+
+    .menu-sub .menu-item {
+      background: #f1f5f9;
+      padding: 12px 14px;
+      margin-bottom: 6px;
+    }
+
+    .menu-sub .menu-item .menu-item-icon {
+      font-size: 1.2rem;
+      min-width: 32px;
+    }
+
+    .menu-close-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 16px;
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.15s;
+      touch-action: manipulation;
+      margin-top: 8px;
+    }
+
+    .menu-close-btn:active {
+      transform: scale(0.97);
+      background: #e2e8f0;
+    }
+
+    /* ===== ANDROID STYLE POPUP ===== */
+    .android-popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 3000;
+      animation: fadeIn 0.2s ease;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .android-popup-overlay.active {
+      display: flex;
+    }
+
+    .android-popup {
+      background: #ffffff;
+      border-radius: 28px;
+      max-width: 400px;
+      width: 100%;
+      padding: 28px 24px 24px;
+      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .android-popup .popup-icon {
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .android-popup .popup-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0f172a;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .android-popup .popup-message {
+      font-size: 0.95rem;
+      color: #64748b;
+      text-align: center;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .android-popup .popup-actions {
+      display: flex;
+      gap: 10px;
+      flex-direction: column;
+    }
+
+    .android-popup .popup-actions .btn-popup {
+      padding: 14px;
+      border: none;
+      border-radius: 16px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.15s;
+      touch-action: manipulation;
+      min-height: 48px;
+    }
+
+    .android-popup .popup-actions .btn-popup:active {
+      transform: scale(0.97);
+    }
+
+    .android-popup .popup-actions .btn-popup.primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .android-popup .popup-actions .btn-popup.primary:hover {
+      background: #2563eb;
+    }
+
+    .android-popup .popup-actions .btn-popup.secondary {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .android-popup .popup-actions .btn-popup.secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .android-popup .popup-actions .btn-popup.danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .android-popup .popup-actions .btn-popup.danger:hover {
+      background: #dc2626;
+    }
+
+    .android-popup .popup-actions .btn-popup.success {
+      background: #22c55e;
+      color: white;
+    }
+
+    .android-popup .popup-actions .btn-popup.success:hover {
+      background: #16a34a;
+    }
+
+    /* TOPBAR - di bawah header */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      padding: 4px 0;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-right: auto;
+    }
+
+    .topbar-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      background: white;
+      border: 1.5px solid #e2e8f0;
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #1e293b;
+      touch-action: manipulation;
+      min-height: 44px;
+    }
+
+    .btn-action:active {
+      transform: scale(0.96);
+    }
+
+    .btn-action:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .btn-action.primary {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: white;
+    }
+
+    .btn-action.primary:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+
+    .status-badge {
+      font-size: 0.7rem;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 4px 14px;
+      border-radius: 30px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* CARD FORM - Android optimized */
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 1.5rem 1.25rem 1.8rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      max-width: 780px;
+      margin-bottom: 24px;
+      width: 100%;
+    }
+
+    .card h3 {
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: #0f172a;
+      margin-bottom: 0.2rem;
+    }
+
+    .subhead {
+      color: #64748b;
+      font-size: 0.85rem;
+      margin-bottom: 1.2rem;
+      border-left: 4px solid #3b82f6;
+      padding-left: 14px;
+      background: #f8fafc;
+      border-radius: 0 12px 12px 0;
+      line-height: 1.5;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 20px;
+    }
+
+    .field-full {
+      grid-column: 1 / -1;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-group label {
+      font-weight: 500;
+      font-size: 0.75rem;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .field-group label i {
+      font-style: normal;
+      background: #e2e8f0;
+      border-radius: 20px;
+      padding: 0 8px;
+      font-size: 0.6rem;
+      color: #334155;
+    }
+
+    .field-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      background: white;
+      transition: 0.2s;
+      outline: none;
+      -webkit-appearance: none;
+      min-height: 48px;
+    }
+
+    .field-group input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+    }
+
+    .field-group input::placeholder {
+      color: #94a3b8;
+      font-weight: 300;
+      font-size: 0.85rem;
+    }
+
+    /* Hilangkan spinner number di Android */
+    .field-group input[type="number"]::-webkit-inner-spin-button,
+    .field-group input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .field-group input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .field-group .qty-hint {
+      font-size: 0.65rem;
+      color: #94a3b8;
+      margin-top: 2px;
+      padding-left: 4px;
+    }
+
+    .btn-row {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
+      flex: 1 1 auto;
+      justify-content: center;
+      touch-action: manipulation;
+      min-height: 48px;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn:hover {
+      background: #2563eb;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #1e293b;
+      box-shadow: none;
+      border: 1.5px solid #d1d9e6;
+      flex: 0.6;
+    }
+
+    .btn-outline:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    /* TOAST - Android optimized */
+    .toast {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 30px;
+      background: #ecfdf5;
+      color: #065f46;
+      border-left: 6px solid #10b981;
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: fadeSlide 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    .toast.error {
+      background: #fef2f2;
+      color: #991b1b;
+      border-left-color: #ef4444;
+    }
+
+    .toast.show {
+      display: flex;
+    }
+
+    @keyframes fadeSlide {
+      0% { opacity: 0; transform: translateY(-6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== RESPONSIVE ANDROID ===== */
+    @media (max-width: 720px) {
+      body {
+        padding-top: 68px;
+      }
+
+      .sidebar.open {
+        width: 100%;
+        max-width: 100%;
+      }
+      
+      .main-content.shifted {
+        margin-right: 0;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .page-header {
+        padding: 10px 16px;
+        min-height: 64px;
+      }
+
+      .header-title {
+        font-size: 1rem;
+      }
+
+      .header-subtitle {
+        font-size: 0.65rem;
+      }
+
+      .header-icon {
+        font-size: 1.4rem;
+      }
+
+      .hamburger-header {
+        font-size: 1.4rem;
+        padding: 4px 10px;
+        min-width: 40px;
+        min-height: 40px;
+      }
+
+      .login-btn {
+        font-size: 1rem;
+        padding: 4px 10px;
+        min-width: 40px;
+        min-height: 40px;
+      }
+
+      .login-btn .login-icon {
+        font-size: 1.1rem;
+      }
+
+      .topbar {
+        justify-content: flex-end;
+        gap: 6px;
+        margin-top: 2px;
+      }
+
+      .topbar-actions {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .topbar-left {
+        margin-right: auto;
+      }
+
+      .topbar-title {
+        font-size: 0.95rem;
+      }
+
+      .status-badge {
+        width: 100%;
+        text-align: center;
+      }
+
+      .btn-row {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .btn-outline {
+        flex: 1;
+        width: 100%;
+      }
+
+      .card {
+        padding: 1.25rem 1rem 1.5rem;
+        border-radius: 20px;
+      }
+
+      .btn-action {
+        padding: 6px 14px;
+        font-size: 0.8rem;
+        min-height: 40px;
+      }
+
+      .menu-popup {
+        padding: 16px 18px 24px;
+        border-radius: 24px 24px 0 0;
+      }
+
+      .menu-item {
+        padding: 12px 14px;
+      }
+
+      .android-popup {
+        padding: 24px 20px 20px;
+        border-radius: 24px;
+        max-width: 100%;
+        margin: 16px;
+      }
+    }
+
+    /* Android minimal screen */
+    @media (max-width: 400px) {
+      body {
+        padding-top: 60px;
+      }
+
+      .main-content {
+        padding: 12px;
+      }
+
+      .page-header {
+        padding: 8px 12px;
+        min-height: 56px;
+      }
+
+      .header-title {
+        font-size: 0.85rem;
+      }
+
+      .header-subtitle {
+        font-size: 0.6rem;
+      }
+
+      .header-icon {
+        font-size: 1.2rem;
+      }
+
+      .hamburger-header {
+        font-size: 1.2rem;
+        padding: 4px 8px;
+        min-width: 36px;
+        min-height: 36px;
+      }
+
+      .login-btn {
+        font-size: 0.9rem;
+        padding: 4px 8px;
+        min-width: 36px;
+        min-height: 36px;
+      }
+
+      .login-btn .login-icon {
+        font-size: 1rem;
+      }
+
+      .card {
+        padding: 1rem 0.85rem 1.2rem;
+      }
+
+      .field-group input {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        min-height: 44px;
+      }
+
+      .btn {
+        font-size: 0.85rem;
+        padding: 10px 18px;
+        min-height: 44px;
+      }
+
+      .topbar-actions {
+        gap: 6px;
+      }
+
+      .btn-action {
+        font-size: 0.75rem;
+        padding: 4px 12px;
+        min-height: 36px;
+      }
+
+      .topbar-title {
+        font-size: 0.85rem;
+      }
+
+      .menu-popup {
+        padding: 12px 14px 20px;
+      }
+
+      .menu-item {
+        padding: 10px 12px;
+      }
+
+      .menu-item .menu-item-icon {
+        font-size: 1.2rem;
+        min-width: 32px;
+      }
+
+      .menu-sub {
+        padding-left: 12px;
+        margin-left: 12px;
+      }
+
+      .android-popup {
+        padding: 20px 16px 16px;
+        border-radius: 20px;
+        margin: 12px;
+      }
+    }
+
+    /* Sidebar item actions */
+    .sidebar-list .item-card .item-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-list .item-card .item-actions button {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: 0.15s;
+      touch-action: manipulation;
+      min-height: 36px;
+      min-width: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-list .item-card .item-actions button:active {
+      background: #0f172a;
+      transform: scale(0.9);
+    }
+
+    .sidebar-list .item-card .item-actions button:hover {
+      background: #0f172a;
+      color: #f1f5f9;
+    }
+
+    .edit-indicator {
+      display: inline-block;
+      background: #f59e0b;
+      color: #0f172a;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 1px 10px;
+      border-radius: 30px;
+      margin-left: 6px;
+      text-transform: uppercase;
+    }
+
+    /* Overlay untuk sidebar di mobile */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 999;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+      display: block;
+    }
+
+    @media (max-width: 720px) {
+      .sidebar-overlay.active {
+        display: block;
+      }
+    }
+
+    /* Hilangkan hamburger di topbar */
+    .hamburger-icon-only {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Overlay untuk mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- SIDEBAR (di kanan) -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h2>📋 Daftar Material</h2>
+    <button class="close-sidebar" id="closeSidebar">✕</button>
+  </div>
+  <div class="sidebar-search">
+    <input type="text" id="searchSidebar" placeholder="Cari brand / size ..." />
+  </div>
+  <div class="sidebar-list" id="sidebarList">
+    <div class="empty-msg">Belum ada data.</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-content" id="mainContent">
+  
+  <!-- PAGE HEADER FIXED -->
+  <header class="page-header" id="pageHeader">
+    <div class="header-left">
+      <span class="header-icon">📦</span>
+      <div class="header-title-group">
+        <div class="header-title">Manajemen Material</div>
+        <div class="header-subtitle">Kelola stok sisa material</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="login-btn" id="loginBtn">
+        <span class="login-icon">👤</span>
+      </button>
+      <button class="hamburger-header" id="hamburgerBtn" aria-label="Toggle menu">☰</button>
+    </div>
+  </header>
+
+  <!-- MENU POPUP (Android-style Bottom Sheet) -->
+  <div class="menu-overlay" id="menuOverlay">
+    <div class="menu-popup" id="menuPopup">
+      <div class="menu-handle"></div>
+      
+      <div class="menu-title">
+        <span class="title-icon">⚙️</span>
+        Menu
+      </div>
+
+      <!-- Menu Pengaturan -->
+      <div class="menu-item" id="menuSettings">
+        <span class="menu-item-icon">🔧</span>
+        <div class="menu-item-content">
+          <div class="menu-item-title">Pengaturan</div>
+          <div class="menu-item-desc">Konfigurasi aplikasi</div>
+        </div>
+        <span class="menu-item-arrow">›</span>
+      </div>
+
+      <!-- Menu Download XLSX -->
+      <div class="menu-item" id="menuDownloadXlsx">
+        <span class="menu-item-icon">📊</span>
+        <div class="menu-item-content">
+          <div class="menu-item-title">Download XLSX</div>
+          <div class="menu-item-desc">Ekspor data ke Excel</div>
+        </div>
+        <span class="menu-item-arrow">›</span>
+      </div>
+
+      <!-- Menu Backup dengan sub-menu -->
+      <div class="menu-item" id="menuBackupParent">
+        <span class="menu-item-icon">💾</span>
+        <div class="menu-item-content">
+          <div class="menu-item-title">Backup Data</div>
+          <div class="menu-item-desc">Cadangkan semua data</div>
+        </div>
+        <span class="menu-item-arrow" id="backupArrow">▼</span>
+      </div>
+
+      <!-- Sub-menu Backup -->
+      <div class="menu-sub" id="backupSubMenu" style="display: none;">
+        <div class="menu-item" id="menuBackupJson">
+          <span class="menu-item-icon">📄</span>
+          <div class="menu-item-content">
+            <div class="menu-item-title">Backup JSON</div>
+            <div class="menu-item-desc">Format JSON</div>
+          </div>
+          <span class="menu-item-arrow">›</span>
+        </div>
+        <div class="menu-item" id="menuBackupSql">
+          <span class="menu-item-icon">🗄️</span>
+          <div class="menu-item-content">
+            <div class="menu-item-title">Backup SQL</div>
+            <div class="menu-item-desc">Format SQL INSERT</div>
+          </div>
+          <span class="menu-item-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="menu-divider"></div>
+
+      <button class="menu-close-btn" id="menuCloseBtn">Tutup</button>
+    </div>
+  </div>
+
+  <!-- ===== ANDROID STYLE POPUPS ===== -->
+  
+  <!-- Popup Konfirmasi Download XLSX -->
+  <div class="android-popup-overlay" id="popupDownloadXlsx">
+    <div class="android-popup">
+      <span class="popup-icon">📊</span>
+      <div class="popup-title">Download XLSX</div>
+      <div class="popup-message">Apakah Anda ingin mengekspor semua data ke file Excel?</div>
+      <div class="popup-actions">
+        <button class="btn-popup primary" id="confirmDownloadXlsx">Ya, Download</button>
+        <button class="btn-popup secondary" id="cancelDownloadXlsx">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup Konfirmasi Backup JSON -->
+  <div class="android-popup-overlay" id="popupBackupJson">
+    <div class="android-popup">
+      <span class="popup-icon">📄</span>
+      <div class="popup-title">Backup JSON</div>
+      <div class="popup-message">Cadangkan semua data dalam format JSON?</div>
+      <div class="popup-actions">
+        <button class="btn-popup success" id="confirmBackupJson">Ya, Backup</button>
+        <button class="btn-popup secondary" id="cancelBackupJson">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup Konfirmasi Backup SQL -->
+  <div class="android-popup-overlay" id="popupBackupSql">
+    <div class="android-popup">
+      <span class="popup-icon">🗄️</span>
+      <div class="popup-title">Backup SQL</div>
+      <div class="popup-message">Cadangkan semua data dalam format SQL INSERT?</div>
+      <div class="popup-actions">
+        <button class="btn-popup success" id="confirmBackupSql">Ya, Backup</button>
+        <button class="btn-popup secondary" id="cancelBackupSql">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup Informasi -->
+  <div class="android-popup-overlay" id="popupInfo">
+    <div class="android-popup">
+      <span class="popup-icon" id="infoPopupIcon">ℹ️</span>
+      <div class="popup-title" id="infoPopupTitle">Informasi</div>
+      <div class="popup-message" id="infoPopupMessage">Pesan informatif</div>
+      <div class="popup-actions">
+        <button class="btn-popup primary" id="infoPopupOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title">📋 Input Data</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-action" id="refreshBtn">⟳ Refresh</button>
+    </div>
+    <span class="status-badge" id="connStatus">⏳ cek</span>
+  </div>
+
+  <!-- Form Card -->
+  <div class="card">
+    <h3 id="formTitle">Input Sisa Material</h3>
+    <div class="subhead" id="formSubhead">Tambah data baru</div>
+
+    <form id="materialForm" autocomplete="off">
+      <div class="form-grid">
+        <div class="field-group">
+          <label>Brand <i>wajib</i></label>
+          <input type="text" id="brand" placeholder="contoh: Nike" required />
+        </div>
+        <div class="field-group">
+          <label>Size <i>wajib</i></label>
+          <input type="text" id="size" placeholder="1 ¼, 1 ¼ + tips, kss, kss + tips" required />
+        </div>
+        <div class="field-group">
+          <label>Booklet <i>qty pcs</i></label>
+          <input type="number" id="booklet" placeholder="0" min="0" step="1" inputmode="numeric" />
+          <span class="qty-hint">Jumlah dalam pcs</span>
+        </div>
+        <div class="field-group">
+          <label>Filtertips <i>qty pcs</i></label>
+          <input type="number" id="filtertips" placeholder="0" min="0" step="1" inputmode="numeric" />
+          <span class="qty-hint">Jumlah dalam pcs</span>
+        </div>
+        <div class="field-group">
+          <label>Trapezoid <i>qty pcs</i></label>
+          <input type="number" id="trapezoid" placeholder="0" min="0" step="1" inputmode="numeric" />
+          <span class="qty-hint">Jumlah dalam pcs</span>
+        </div>
+        <div class="field-group">
+          <label>Cover <i>qty pcs</i></label>
+          <input type="number" id="cover" placeholder="0" min="0" step="1" inputmode="numeric" />
+          <span class="qty-hint">Jumlah dalam pcs</span>
+        </div>
+        <div class="field-group">
+          <label>Display Box <i>qty pcs</i></label>
+          <input type="number" id="displaybox" placeholder="0" min="0" step="1" inputmode="numeric" />
+          <span class="qty-hint">Jumlah dalam pcs</span>
+        </div>
+        <div class="field-group field-full">
+          <label style="text-transform:none; font-weight:400; color:#64748b;">📎 Catatan <span style="font-weight:300; font-size:0.7rem; background:#f1f5f9; padding:0 8px; border-radius:30px;">opsional</span></label>
+          <input type="text" id="notes" placeholder="tambahan informasi ..." />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="submit" class="btn" id="submitBtn">💾 Simpan</button>
+        <button type="reset" class="btn btn-outline" id="resetBtn">↺ Reset</button>
+        <button type="button" class="btn btn-outline" id="cancelEditBtn" style="display:none;">✕ Batal Edit</button>
+      </div>
+    </form>
+
+    <div id="toastMessage" class="toast">
+      <span id="toastIcon">✅</span>
+      <span id="toastText">Data tersimpan</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ===== KONFIGURASI SUPABASE =====
+    const SUPABASE_URL = 'https://irkzhzakyjgnlczuenfy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlya3poemFreWpnbmxjenVlbmZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NDA5MzYsImV4cCI6MjA5OTAxNjkzNn0.uiZaaWTonPa9fHRoyxzy6Q-_3gz3OeM-6FFrZhfA-jA';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ===== DOM REFS =====
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const mainContent = document.getElementById('mainContent');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const closeSidebarBtn = document.getElementById('closeSidebar');
+    const sidebarList = document.getElementById('sidebarList');
+    const searchInput = document.getElementById('searchSidebar');
+    const connStatus = document.getElementById('connStatus');
+
+    // Menu elements
+    const loginBtn = document.getElementById('loginBtn');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const menuPopup = document.getElementById('menuPopup');
+    const menuCloseBtn = document.getElementById('menuCloseBtn');
+    const menuSettings = document.getElementById('menuSettings');
+    const menuDownloadXlsx = document.getElementById('menuDownloadXlsx');
+    const menuBackupParent = document.getElementById('menuBackupParent');
+    const backupSubMenu = document.getElementById('backupSubMenu');
+    const backupArrow = document.getElementById('backupArrow');
+    const menuBackupJson = document.getElementById('menuBackupJson');
+    const menuBackupSql = document.getElementById('menuBackupSql');
+
+    // Popup elements
+    const popupDownloadXlsx = document.getElementById('popupDownloadXlsx');
+    const confirmDownloadXlsx = document.getElementById('confirmDownloadXlsx');
+    const cancelDownloadXlsx = document.getElementById('cancelDownloadXlsx');
+
+    const popupBackupJson = document.getElementById('popupBackupJson');
+    const confirmBackupJson = document.getElementById('confirmBackupJson');
+    const cancelBackupJson = document.getElementById('cancelBackupJson');
+
+    const popupBackupSql = document.getElementById('popupBackupSql');
+    const confirmBackupSql = document.getElementById('confirmBackupSql');
+    const cancelBackupSql = document.getElementById('cancelBackupSql');
+
+    const popupInfo = document.getElementById('popupInfo');
+    const infoPopupIcon = document.getElementById('infoPopupIcon');
+    const infoPopupTitle = document.getElementById('infoPopupTitle');
+    const infoPopupMessage = document.getElementById('infoPopupMessage');
+    const infoPopupOk = document.getElementById('infoPopupOk');
+
+    const form = document.getElementById('materialForm');
+    const brandInput = document.getElementById('brand');
+    const sizeInput = document.getElementById('size');
+    const bookletInput = document.getElementById('booklet');
+    const filtertipsInput = document.getElementById('filtertips');
+    const trapezoidInput = document.getElementById('trapezoid');
+    const coverInput = document.getElementById('cover');
+    const displayboxInput = document.getElementById('displaybox');
+    const notesInput = document.getElementById('notes');
+    const submitBtn = document.getElementById('submitBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const formTitle = document.getElementById('formTitle');
+    const formSubhead = document.getElementById('formSubhead');
+
+    const toast = document.getElementById('toastMessage');
+    const toastText = document.getElementById('toastText');
+    const toastIcon = document.getElementById('toastIcon');
+
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    // ===== STATE =====
+    let allData = [];
+    let editingId = null;
+    let searchQuery = '';
+    let isBackupOpen = false;
+
+    // ===== TOAST =====
+    function showToast(message, isError = false) {
+      toast.classList.remove('error', 'show');
+      toastIcon.textContent = isError ? '❌' : '✅';
+      toastText.textContent = message;
+      if (isError) toast.classList.add('error');
+      toast.classList.add('show');
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+    }
+
+    // ===== ANDROID POPUP FUNCTIONS =====
+    function showPopup(popupElement) {
+      popupElement.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function hidePopup(popupElement) {
+      popupElement.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function showInfoPopup(icon, title, message) {
+      infoPopupIcon.textContent = icon || 'ℹ️';
+      infoPopupTitle.textContent = title || 'Informasi';
+      infoPopupMessage.textContent = message || 'Pesan informatif';
+      showPopup(popupInfo);
+    }
+
+    // ===== MENU FUNCTIONS =====
+    function openMenu() {
+      menuOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      backupSubMenu.style.display = 'none';
+      backupArrow.textContent = '▼';
+      isBackupOpen = false;
+    }
+
+    function closeMenu() {
+      menuOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    loginBtn.addEventListener('click', openMenu);
+    menuCloseBtn.addEventListener('click', closeMenu);
+    menuOverlay.addEventListener('click', (e) => {
+      if (e.target === menuOverlay) closeMenu();
+    });
+
+    // Toggle Backup sub-menu
+    menuBackupParent.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isBackupOpen) {
+        backupSubMenu.style.display = 'none';
+        backupArrow.textContent = '▼';
+        isBackupOpen = false;
+      } else {
+        backupSubMenu.style.display = 'block';
+        backupArrow.textContent = '▲';
+        isBackupOpen = true;
+      }
+    });
+
+    // Menu Settings
+    menuSettings.addEventListener('click', () => {
+      closeMenu();
+      showInfoPopup('🔧', 'Pengaturan', 'Menu Pengaturan akan segera hadir');
+    });
+
+    // Menu Download XLSX - tampilkan popup
+    menuDownloadXlsx.addEventListener('click', () => {
+      closeMenu();
+      if (allData.length === 0) {
+        showInfoPopup('📊', 'Tidak Ada Data', 'Tidak ada data untuk di-download');
+        return;
+      }
+      showPopup(popupDownloadXlsx);
+    });
+
+    // Confirm Download XLSX
+    confirmDownloadXlsx.addEventListener('click', () => {
+      hidePopup(popupDownloadXlsx);
+      downloadXlsx();
+    });
+
+    cancelDownloadXlsx.addEventListener('click', () => {
+      hidePopup(popupDownloadXlsx);
+    });
+
+    // Menu Backup JSON
+    menuBackupJson.addEventListener('click', () => {
+      closeMenu();
+      if (allData.length === 0) {
+        showInfoPopup('📄', 'Tidak Ada Data', 'Tidak ada data untuk di-backup');
+        return;
+      }
+      showPopup(popupBackupJson);
+    });
+
+    // Confirm Backup JSON
+    confirmBackupJson.addEventListener('click', () => {
+      hidePopup(popupBackupJson);
+      backupData('json');
+    });
+
+    cancelBackupJson.addEventListener('click', () => {
+      hidePopup(popupBackupJson);
+    });
+
+    // Menu Backup SQL
+    menuBackupSql.addEventListener('click', () => {
+      closeMenu();
+      if (allData.length === 0) {
+        showInfoPopup('🗄️', 'Tidak Ada Data', 'Tidak ada data untuk di-backup');
+        return;
+      }
+      showPopup(popupBackupSql);
+    });
+
+    // Confirm Backup SQL
+    confirmBackupSql.addEventListener('click', () => {
+      hidePopup(popupBackupSql);
+      backupData('sql');
+    });
+
+    cancelBackupSql.addEventListener('click', () => {
+      hidePopup(popupBackupSql);
+    });
+
+    // Info popup OK
+    infoPopupOk.addEventListener('click', () => {
+      hidePopup(popupInfo);
+    });
+
+    // Tutup popup dengan klik overlay
+    document.querySelectorAll('.android-popup-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          hidePopup(overlay);
+        }
+      });
+    });
+
+    // ===== BACKUP FUNCTIONS =====
+    function backupData(format) {
+      if (allData.length === 0) {
+        showInfoPopup('⚠️', 'Tidak Ada Data', 'Tidak ada data untuk di-backup');
+        return;
+      }
+
+      try {
+        const timestamp = new Date().toISOString().slice(0, 10);
+        
+        if (format === 'json') {
+          const backupData = {
+            timestamp: new Date().toISOString(),
+            totalItems: allData.length,
+            data: allData
+          };
+          
+          const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `backup_material_${timestamp}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          showInfoPopup('✅', 'Backup Berhasil', 'File JSON berhasil di-download');
+        } else if (format === 'sql') {
+          let sql = `-- Backup Data Material\n-- Generated: ${new Date().toISOString()}\n-- Total: ${allData.length} items\n\n`;
+          sql += `-- ============================================\n`;
+          sql += `-- TABLE: material_sisa\n`;
+          sql += `-- ============================================\n\n`;
+          
+          sql += `CREATE TABLE IF NOT EXISTS material_sisa (\n`;
+          sql += `  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,\n`;
+          sql += `  brand TEXT NOT NULL,\n`;
+          sql += `  size TEXT NOT NULL,\n`;
+          sql += `  booklet NUMERIC,\n`;
+          sql += `  filtertips NUMERIC,\n`;
+          sql += `  trapezoid NUMERIC,\n`;
+          sql += `  cover NUMERIC,\n`;
+          sql += `  displaybox NUMERIC,\n`;
+          sql += `  notes TEXT,\n`;
+          sql += `  created_at TIMESTAMPTZ DEFAULT now()\n`;
+          sql += `);\n\n`;
+          
+          sql += `-- ============================================\n`;
+          sql += `-- INSERT DATA\n`;
+          sql += `-- ============================================\n\n`;
+          
+          allData.forEach((item) => {
+            const brand = item.brand || '';
+            const size = item.size || '';
+            const booklet = item.booklet !== null && item.booklet !== undefined ? item.booklet : 'NULL';
+            const filtertips = item.filtertips !== null && item.filtertips !== undefined ? item.filtertips : 'NULL';
+            const trapezoid = item.trapezoid !== null && item.trapezoid !== undefined ? item.trapezoid : 'NULL';
+            const cover = item.cover !== null && item.cover !== undefined ? item.cover : 'NULL';
+            const displaybox = item.displaybox !== null && item.displaybox !== undefined ? item.displaybox : 'NULL';
+            const notes = item.notes ? item.notes.replace(/'/g, "''") : '';
+            const created_at = item.created_at || 'NOW()';
+            
+            sql += `INSERT INTO material_sisa (id, brand, size, booklet, filtertips, trapezoid, cover, displaybox, notes, created_at) VALUES (\n`;
+            sql += `  '${item.id}',\n`;
+            sql += `  '${brand}',\n`;
+            sql += `  '${size}',\n`;
+            sql += `  ${booklet},\n`;
+            sql += `  ${filtertips},\n`;
+            sql += `  ${trapezoid},\n`;
+            sql += `  ${cover},\n`;
+            sql += `  ${displaybox},\n`;
+            sql += `  ${notes ? `'${notes}'` : 'NULL'},\n`;
+            sql += `  ${created_at !== 'NOW()' ? `'${created_at}'` : 'NOW()'}\n`;
+            sql += `);\n\n`;
+          });
+          
+          const blob = new Blob([sql], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `backup_material_${timestamp}.sql`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          showInfoPopup('✅', 'Backup Berhasil', 'File SQL berhasil di-download');
+        }
+      } catch (err) {
+        showInfoPopup('❌', 'Gagal Backup', err.message);
+      }
+    }
+
+    // ===== DOWNLOAD XLSX =====
+    function downloadXlsx() {
+      if (allData.length === 0) {
+        showInfoPopup('📊', 'Tidak Ada Data', 'Tidak ada data untuk di-download');
+        return;
+      }
+      try {
+        const exportData = allData.map(item => ({
+          Brand: item.brand || '',
+          Size: item.size || '',
+          Booklet: item.booklet ?? '',
+          Filtertips: item.filtertips ?? '',
+          Trapezoid: item.trapezoid ?? '',
+          Cover: item.cover ?? '',
+          'Display Box': item.displaybox ?? '',
+          Notes: item.notes || '',
+          'Created At': item.created_at ? new Date(item.created_at).toLocaleString() : ''
+        }));
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Material');
+        XLSX.writeFile(wb, `material_sisa_${new Date().toISOString().slice(0,10)}.xlsx`);
+        showInfoPopup('✅', 'Download Berhasil', 'File XLSX berhasil di-download');
+      } catch (err) {
+        showInfoPopup('❌', 'Gagal Download', err.message);
+      }
+    }
+
+    // ===== SIDEBAR TOGGLE =====
+    function toggleSidebar(open) {
+      const isOpen = sidebar.classList.contains('open');
+      if (open === undefined) {
+        sidebar.classList.toggle('open');
+        mainContent.classList.toggle('shifted');
+        sidebarOverlay.classList.toggle('active');
+      } else if (open) {
+        sidebar.classList.add('open');
+        mainContent.classList.add('shifted');
+        sidebarOverlay.classList.add('active');
+      } else {
+        sidebar.classList.remove('open');
+        mainContent.classList.remove('shifted');
+        sidebarOverlay.classList.remove('active');
+      }
+    }
+
+    hamburgerBtn.addEventListener('click', () => toggleSidebar());
+    closeSidebarBtn.addEventListener('click', () => toggleSidebar(false));
+    sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
+
+    // ===== RENDER SIDEBAR =====
+    function renderSidebar(data) {
+      const filtered = data.filter(item => {
+        const q = searchQuery.toLowerCase().trim();
+        if (!q) return true;
+        const brand = (item.brand || '').toLowerCase();
+        const size = (item.size || '').toLowerCase();
+        return brand.includes(q) || size.includes(q);
+      });
+
+      if (filtered.length === 0) {
+        sidebarList.innerHTML = `<div class="empty-msg">${data.length === 0 ? 'Belum ada data.' : 'Tidak ditemukan.'}</div>`;
+        return;
+      }
+
+      sidebarList.innerHTML = filtered.map(item => `
+        <div class="item-card" data-id="${item.id}">
+          <div>
+            <div class="item-name">${item.brand || '—'} ${item.size ? '· ' + item.size : ''}</div>
+            <div style="font-size:0.7rem; color:#94a3b8; margin-top:3px; display:flex; flex-wrap:wrap; gap:4px;">
+              ${item.booklet ? `<span class="item-qty-badge">📘${item.booklet}</span>` : ''}
+              ${item.filtertips ? `<span class="item-qty-badge">🔍${item.filtertips}</span>` : ''}
+              ${item.trapezoid ? `<span class="item-qty-badge">⬡${item.trapezoid}</span>` : ''}
+              ${item.cover ? `<span class="item-qty-badge">📕${item.cover}</span>` : ''}
+              ${item.displaybox ? `<span class="item-qty-badge">📦${item.displaybox}</span>` : ''}
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="edit-item" data-id="${item.id}" title="Edit">✎</button>
+            <button class="delete-item" data-id="${item.id}" title="Hapus">🗑</button>
+          </div>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.edit-item').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          const item = allData.find(d => d.id === id);
+          if (item) loadEditForm(item);
+          if (window.innerWidth <= 720) toggleSidebar(false);
+        });
+      });
+
+      document.querySelectorAll('.delete-item').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          showPopupConfirmDelete(id);
+        });
+      });
+
+      document.querySelectorAll('.item-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const id = this.dataset.id;
+          const item = allData.find(d => d.id === id);
+          if (item) loadEditForm(item);
+          if (window.innerWidth <= 720) toggleSidebar(false);
+        });
+      });
+    }
+
+    // ===== CONFIRM DELETE POPUP =====
+    let deleteTargetId = null;
+
+    function showPopupConfirmDelete(id) {
+      deleteTargetId = id;
+      const item = allData.find(d => d.id === id);
+      showInfoPopup('🗑️', 'Hapus Data', `Yakin ingin menghapus data "${item.brand} · ${item.size}"?`);
+      
+      // Override tombol OK untuk konfirmasi hapus
+      infoPopupOk.removeEventListener('click', handleInfoOk);
+      infoPopupOk.textContent = 'Hapus';
+      infoPopupOk.className = 'btn-popup danger';
+      infoPopupOk.addEventListener('click', handleConfirmDelete);
+    }
+
+    function handleConfirmDelete() {
+      if (deleteTargetId) {
+        deleteItem(deleteTargetId);
+        deleteTargetId = null;
+      }
+      hidePopup(popupInfo);
+      // Reset tombol info
+      infoPopupOk.textContent = 'OK';
+      infoPopupOk.className = 'btn-popup primary';
+      infoPopupOk.removeEventListener('click', handleConfirmDelete);
+      infoPopupOk.addEventListener('click', handleInfoOk);
+    }
+
+    function handleInfoOk() {
+      hidePopup(popupInfo);
+    }
+
+    // Reset info button default
+    infoPopupOk.addEventListener('click', handleInfoOk);
+
+    // ===== FETCH DATA =====
+    async function fetchData() {
+      try {
+        const { data, error } = await supabase
+          .from('material_sisa')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        allData = data || [];
+        renderSidebar(allData);
+        return data;
+      } catch (err) {
+        console.error('Fetch error:', err);
+        showInfoPopup('❌', 'Gagal Memuat Data', err.message);
+        return [];
+      }
+    }
+
+    // ===== DELETE =====
+    async function deleteItem(id) {
+      try {
+        const { error } = await supabase.from('material_sisa').delete().eq('id', id);
+        if (error) throw error;
+        showInfoPopup('✅', 'Berhasil', 'Data berhasil dihapus');
+        await fetchData();
+        if (editingId === id) cancelEdit();
+      } catch (err) {
+        showInfoPopup('❌', 'Gagal Hapus', err.message);
+      }
+    }
+
+    // ===== LOAD EDIT FORM =====
+    function loadEditForm(item) {
+      editingId = item.id;
+      brandInput.value = item.brand || '';
+      sizeInput.value = item.size || '';
+      bookletInput.value = item.booklet ?? '';
+      filtertipsInput.value = item.filtertips ?? '';
+      trapezoidInput.value = item.trapezoid ?? '';
+      coverInput.value = item.cover ?? '';
+      displayboxInput.value = item.displaybox ?? '';
+      notesInput.value = item.notes || '';
+
+      formTitle.textContent = '✎ Edit Material';
+      formSubhead.textContent = `Sedang mengedit: ${item.brand} · ${item.size}`;
+      submitBtn.textContent = '✎ Update Data';
+      cancelEditBtn.style.display = 'inline-flex';
+      document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function cancelEdit() {
+      editingId = null;
+      form.reset();
+      formTitle.textContent = '📦 Input Sisa Material';
+      formSubhead.textContent = '⚡ Tambah data baru · tersimpan di Supabase';
+      submitBtn.textContent = '💾 Simpan';
+      cancelEditBtn.style.display = 'none';
+      brandInput.focus();
+    }
+
+    // ===== SUBMIT =====
+    async function handleSubmit(e) {
+      e.preventDefault();
+
+      const brand = brandInput.value.trim();
+      const size = sizeInput.value.trim();
+      if (!brand || !size) {
+        showInfoPopup('⚠️', 'Validasi', 'Brand dan Size wajib diisi!');
+        return;
+      }
+
+      const toNumber = (val) => {
+        const num = parseFloat(val);
+        return isNaN(num) || num < 0 ? null : num;
+      };
+
+      const payload = {
+        brand,
+        size,
+        booklet: toNumber(bookletInput.value),
+        filtertips: toNumber(filtertipsInput.value),
+        trapezoid: toNumber(trapezoidInput.value),
+        cover: toNumber(coverInput.value),
+        displaybox: toNumber(displayboxInput.value),
+        notes: notesInput.value.trim() || null,
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ menyimpan...';
+
+      try {
+        let result;
+        if (editingId) {
+          result = await supabase
+            .from('material_sisa')
+            .update(payload)
+            .eq('id', editingId)
+            .select();
+          if (result.error) throw result.error;
+          showInfoPopup('✅', 'Berhasil', 'Data berhasil diupdate!');
+          cancelEdit();
+        } else {
+          result = await supabase
+            .from('material_sisa')
+            .insert([{ ...payload, created_at: new Date().toISOString() }])
+            .select();
+          if (result.error) throw result.error;
+          showInfoPopup('✅', 'Berhasil', 'Data baru berhasil disimpan!');
+          form.reset();
+          brandInput.focus();
+        }
+
+        await fetchData();
+      } catch (err) {
+        console.error(err);
+        showInfoPopup('❌', 'Gagal', err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = editingId ? '✎ Update Data' : '💾 Simpan';
+      }
+    }
+
+    // ===== CHECK CONNECTION =====
+    async function checkConnection() {
+      try {
+        connStatus.textContent = '⏳ cek...';
+        
+        const { error } = await supabase.from('material_sisa').select('id', { count: 'exact', head: true }).limit(1);
+        
+        if (error && error.code !== '42P01') throw error;
+        
+        connStatus.textContent = '🟢 terhubung';
+        connStatus.style.color = '#15803d';
+        return true;
+      } catch (err) {
+        connStatus.textContent = '🔴 gagal konek';
+        connStatus.style.color = '#b91c1c';
+        showInfoPopup('❌', 'Gagal Koneksi', err.message);
+        return false;
+      }
+    }
+
+    // ===== INIT =====
+    async function init() {
+      await checkConnection();
+      await fetchData();
+
+      form.addEventListener('submit', handleSubmit);
+      resetBtn.addEventListener('click', () => cancelEdit());
+      cancelEditBtn.addEventListener('click', () => cancelEdit());
+      refreshBtn.addEventListener('click', async () => {
+        await fetchData();
+        showInfoPopup('✅', 'Refresh', 'Data berhasil diperbarui');
+      });
+
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderSidebar(allData);
+      });
+
+      window.addEventListener('popstate', () => {
+        if (sidebar.classList.contains('open')) {
+          toggleSidebar(false);
+        }
+        if (menuOverlay.classList.contains('active')) {
+          closeMenu();
+        }
+        // Tutup semua popup
+        document.querySelectorAll('.android-popup-overlay.active').forEach(p => {
+          hidePopup(p);
+        });
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (menuOverlay.classList.contains('active')) {
+            closeMenu();
+          }
+          document.querySelectorAll('.android-popup-overlay.active').forEach(p => {
+            hidePopup(p);
+          });
+        }
+      });
+    }
+
+    init();
+
+    console.log('📦 Aplikasi siap.');
+  })();
+</script>
+</body>
+</html>
